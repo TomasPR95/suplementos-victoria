@@ -67,6 +67,15 @@
     .color-row input[type="color"] { width: 44px; height: 36px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; padding: 2px; background: #fff; }
     .color-row input[type="text"] { flex: 1; }
     .hint { font-size: 0.75rem; color: var(--gray); margin-top: -0.3rem; margin-bottom: 0.6rem; }
+    .img-upload-wrap { display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 0.6rem; }
+    .img-preview { width: 90px; height: 90px; background: #f5f5f5; border: 1px solid #e5e5e5; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 2rem; flex-shrink: 0; overflow: hidden; }
+    .img-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .img-upload-right { flex: 1; display: flex; flex-direction: column; gap: 0.4rem; }
+    .file-input { display: none; }
+    .btn-upload { display: inline-block; background: #f5f5f5; border: 1px solid #ddd; border-radius: 6px; padding: 0.5rem 1rem; font-family: "DM Sans", sans-serif; font-size: 0.85rem; cursor: pointer; transition: background 0.2s; }
+    .btn-upload:hover { background: #e5e5e5; }
+    .img-hint { font-size: 0.75rem; color: var(--gray); }
+    .upload-progress { font-size: 0.8rem; color: var(--gray); display: none; }
   </style>
 </head>
 <body>
@@ -195,8 +204,16 @@
       </div>
       <label class="form-label">Descripción</label>
       <textarea id="pDescripcion" class="form-input" rows="2" placeholder="Descripción del producto..."></textarea>
-      <label class="form-label">URL de imagen</label>
-      <input type="text" id="pImagen" class="form-input" placeholder="https://..." />
+      <label class="form-label">Imagen del producto</label>
+      <div class="img-upload-wrap">
+        <div class="img-preview" id="imgPreview">💪</div>
+        <div class="img-upload-right">
+          <input type="file" id="pImagenFile" accept="image/*" onchange="previewImage(this)" class="file-input" />
+          <label for="pImagenFile" class="btn-upload">📁 Elegir imagen</label>
+          <p class="img-hint">O pegá una URL:</p>
+          <input type="text" id="pImagen" class="form-input" placeholder="https://..." oninput="previewUrl(this.value)" style="margin-bottom:0" />
+        </div>
+      </div>
       <div class="modal-actions">
         <button class="btn-secondary" onclick="document.getElementById('modalOverlay').classList.remove('open')">Cancelar</button>
         <button class="btn-primary" onclick="saveProduct()">Guardar</button>
@@ -284,6 +301,9 @@
       document.getElementById('pStock').value = product?.stock ?? '';
       document.getElementById('pDescripcion').value = product?.descripcion || '';
       document.getElementById('pImagen').value = product?.imagen_url || '';
+      document.getElementById('pImagenFile').value = '';
+      const prev = document.getElementById('imgPreview');
+      prev.innerHTML = product?.imagen_url ? '<img src="' + product.imagen_url + '" />' : '💪';
     }
     function closeModal(e) {
       if (e && e.target !== document.getElementById('modalOverlay')) return;
@@ -374,3 +394,4 @@
   </script>
 </body>
 </html>
+
