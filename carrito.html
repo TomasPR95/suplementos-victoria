@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carrito · Suplementos Victoria</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* =============================================
+       SUPLEMENTOS VICTORIA — carrito.html
+       ============================================= */
+    :root {
+      --black: #0a0a0a;
+      --dark2: #1a1a1a;
+      --dark3: #222;
+      --white: #f5f5f0;
+      --gray: #888;
+      --red: #ef4444;
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: #fff; color: var(--black); min-height: 100vh; }
+
+    /* HEADER */
+    .header { position: sticky; top: 0; z-index: 100; background: var(--black); border-bottom: 1px solid #222; }
+    .header-inner { max-width: 1300px; margin: 0 auto; padding: 0.7rem 1.5rem; display: flex; align-items: center; gap: 1.2rem; }
+    .logo { display: flex; align-items: center; text-decoration: none; flex-shrink: 0; }
+    .logo-img { height: 48px; width: 48px; object-fit: contain; border-radius: 50%; }
+    .back-btn { color: var(--gray); text-decoration: none; font-size: 0.85rem; margin-left: auto; transition: color 0.2s; }
+    .back-btn:hover { color: #fff; }
+    .cart-btn { position: relative; text-decoration: none; font-size: 1.4rem; flex-shrink: 0; }
+    .cart-count { position: absolute; top: -6px; right: -8px; background: #fff; color: var(--black); font-size: 0.65rem; font-weight: 700; width: 18px; height: 18px; border-radius: 50%; display: none; align-items: center; justify-content: center; }
+
+    /* MAIN */
+    .main { max-width: 1300px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+    .section-title { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 4px; color: var(--black); margin-bottom: 1.5rem; }
+
+    /* CART LAYOUT */
+    .cart-layout { display: grid; grid-template-columns: 1fr 340px; gap: 2rem; align-items: start; }
+    @media (max-width: 768px) { .cart-layout { grid-template-columns: 1fr; } }
+
+    /* EMPTY */
+    .empty-cart { text-align: center; padding: 4rem 2rem; color: var(--gray); }
+    .empty-cart p { font-size: 1.1rem; margin-bottom: 1.5rem; }
+
+    /* CART ITEMS */
+    .cart-item { background: #fff; border: 1px solid #e5e5e5; border-radius: var(--radius); padding: 1rem 1.2rem; display: flex; align-items: center; gap: 1rem; margin-bottom: 0.8rem; animation: slideIn 0.2s ease; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+    .cart-item-img { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; background: #f5f5f5; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; }
+    .cart-item-info { flex: 1; }
+    .cart-item-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.2rem; }
+    .cart-item-price { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 1px; color: var(--black); }
+    .cart-item-controls { display: flex; align-items: center; gap: 0.5rem; }
+    .qty-btn { width: 28px; height: 28px; border-radius: 50%; border: 1px solid #ddd; background: #fff; color: var(--black); font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: border-color 0.2s; }
+    .qty-btn:hover { border-color: var(--black); }
+    .qty-val { font-weight: 600; min-width: 24px; text-align: center; }
+    .btn-remove { background: none; border: none; color: var(--gray); font-size: 1.1rem; cursor: pointer; padding: 0 0.3rem; transition: color 0.2s; }
+    .btn-remove:hover { color: var(--red); }
+
+    /* SUMMARY */
+    .cart-summary { background: var(--black); border-radius: var(--radius); padding: 1.5rem; position: sticky; top: 80px; color: #fff; }
+    .summary-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 3px; margin-bottom: 1rem; }
+    .summary-row { display: flex; justify-content: space-between; font-size: 0.85rem; color: #888; padding: 0.3rem 0; }
+    .summary-total { display: flex; justify-content: space-between; font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 2px; border-top: 1px solid #333; padding-top: 0.8rem; margin: 0.5rem 0 1.2rem; }
+
+    /* FORM */
+    .customer-form { margin-bottom: 1.2rem; }
+    .customer-form h4 { font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; color: #888; margin-bottom: 0.6rem; }
+    .form-input { width: 100%; background: #1a1a1a; border: 1px solid #333; border-radius: 6px; color: #fff; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; padding: 0.65rem 0.9rem; margin-bottom: 0.6rem; transition: border-color 0.2s; resize: vertical; }
+    .form-input:focus { outline: none; border-color: #fff; }
+    .form-input::placeholder { color: #555; }
+
+    /* BUTTONS */
+    .btn-primary { display: inline-block; background: #fff; color: var(--black); border: none; border-radius: var(--radius); padding: 0.7rem 1.4rem; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 700; cursor: pointer; text-decoration: none; transition: background 0.2s; }
+    .btn-primary:hover { background: #e5e5e5; }
+    .btn-whatsapp { width: 100%; background: #25D366; color: #fff; border: none; border-radius: var(--radius); padding: 0.9rem; font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: background 0.2s, transform 0.1s; margin-bottom: 0.5rem; }
+    .btn-whatsapp:hover { background: #1db954; }
+    .btn-whatsapp:active { transform: scale(0.98); }
+    .whatsapp-note { font-size: 0.75rem; color: #888; text-align: center; margin-bottom: 1rem; }
+    .btn-clear { width: 100%; background: none; border: 1px solid rgba(239,68,68,0.4); color: var(--red); border-radius: var(--radius); padding: 0.6rem; font-family: 'DM Sans', sans-serif; font-size: 0.8rem; cursor: pointer; transition: background 0.2s; }
+    .btn-clear:hover { background: rgba(239,68,68,0.1); }
+
+    /* TOAST */
+    .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--black); color: #fff; padding: 0.8rem 1.5rem; border-radius: 30px; font-size: 0.85rem; font-weight: 500; opacity: 0; transition: all 0.3s ease; z-index: 999; white-space: nowrap; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* FOOTER */
+    .footer { text-align: center; padding: 2rem; color: var(--gray); font-size: 0.8rem; border-top: 1px solid #e5e5e5; }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">
+        <img src="img/logo.jpeg" alt="Suplementos Victoria" class="logo-img" />
+      </a>
+      <a href="index.html" class="back-btn">← Seguir comprando</a>
+      <a href="carrito.html" class="cart-btn">
+        🛒<span class="cart-count" id="cartCount">0</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="main">
+    <h2 class="section-title">TU CARRITO</h2>
+    <div class="cart-layout">
+      <div id="cartItems">
+        <div class="empty-cart">
+          <p>🛒 Tu carrito está vacío</p>
+          <a href="index.html" class="btn-primary">Ver productos</a>
+        </div>
+      </div>
+      <div class="cart-summary" id="cartSummary" style="display:none">
+        <h3 class="summary-title">RESUMEN</h3>
+        <div id="summaryRows"></div>
+        <div class="summary-total">
+          <span>TOTAL</span>
+          <span id="summaryTotal">$0</span>
+        </div>
+        <div class="customer-form">
+          <h4>Tus datos</h4>
+          <input type="text" id="customerName" placeholder="Tu nombre completo *" class="form-input" />
+          <input type="text" id="customerPhone" placeholder="Tu teléfono (opcional)" class="form-input" />
+          <textarea id="customerNote" placeholder="¿Alguna aclaración? (opcional)" class="form-input" rows="2"></textarea>
+        </div>
+        <button class="btn-whatsapp" onclick="sendToWhatsapp()">
+          <span>📲</span> Pedir por WhatsApp
+        </button>
+        <p class="whatsapp-note">Te contactaremos para coordinar pago y envío</p>
+        <button class="btn-clear" onclick="clearCart()">Vaciar carrito</button>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <footer class="footer">
+    <p>© 2025 Suplementos Victoria · Hecho con 💪</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // =============================================
+    // ⚠️ REEMPLAZÁ ESTOS VALORES CON LOS TUYOS
+    // =============================================
+    const SUPABASE_URL = https://rxspgxibqcrrwnvsqkev.supabase.co/rest/v1/;
+    const SUPABASE_ANON_KEY = sb_publishable_HCGeovR47W3wJiMWQ3yqlQ_gtQ0vVyj;
+    const WA_NUMBER = '541140917935';
+
+    const { createClient } = supabase;
+    const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // --- CARRITO ---
+    function getCart() { return JSON.parse(localStorage.getItem('sv_cart') || '[]'); }
+    function saveCart(cart) { localStorage.setItem('sv_cart', JSON.stringify(cart)); updateCartCount(); }
+    function updateCartCount() {
+      const total = getCart().reduce((s, i) => s + i.qty, 0);
+      const el = document.getElementById('cartCount');
+      el.textContent = total;
+      el.style.display = total > 0 ? 'flex' : 'none';
+    }
+    function formatPrice(n) { return '$' + Number(n).toLocaleString('es-AR'); }
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    function renderCartPage() {
+      const cart = getCart();
+      const itemsEl = document.getElementById('cartItems');
+      const summaryEl = document.getElementById('cartSummary');
+      if (cart.length === 0) {
+        itemsEl.innerHTML = `<div class="empty-cart"><p>🛒 Tu carrito está vacío</p><a href="index.html" class="btn-primary">Ver productos</a></div>`;
+        summaryEl.style.display = 'none';
+        return;
+      }
+      summaryEl.style.display = 'block';
+      itemsEl.innerHTML = cart.map(item => `
+        <div class="cart-item">
+          <div class="cart-item-img">${item.imagen_url ? `<img src="${item.imagen_url}" alt="${item.nombre}" style="width:100%;height:100%;object-fit:cover;border-radius:6px" />` : '💪'}</div>
+          <div class="cart-item-info">
+            <p class="cart-item-name">${item.nombre}</p>
+            <p class="cart-item-price">${formatPrice(item.precio * item.qty)}</p>
+          </div>
+          <div class="cart-item-controls">
+            <button class="qty-btn" onclick="changeQty(${item.id}, -1)">−</button>
+            <span class="qty-val">${item.qty}</span>
+            <button class="qty-btn" onclick="changeQty(${item.id}, +1)">+</button>
+            <button class="btn-remove" onclick="removeItem(${item.id})">✕</button>
+          </div>
+        </div>`).join('');
+      const total = cart.reduce((s, i) => s + i.precio * i.qty, 0);
+      document.getElementById('summaryRows').innerHTML = cart.map(i =>
+        `<div class="summary-row"><span>${i.qty}x ${i.nombre}</span><span>${formatPrice(i.precio * i.qty)}</span></div>`).join('');
+      document.getElementById('summaryTotal').textContent = formatPrice(total);
+    }
+
+    function changeQty(id, delta) {
+      const cart = getCart();
+      const item = cart.find(i => i.id === id);
+      if (!item) return;
+      item.qty += delta;
+      if (item.qty <= 0) { removeItem(id); return; }
+      saveCart(cart);
+      renderCartPage();
+    }
+    function removeItem(id) { saveCart(getCart().filter(i => i.id !== id)); renderCartPage(); }
+    function clearCart() { if (!confirm('¿Vaciar el carrito?')) return; saveCart([]); renderCartPage(); }
+
+    function sendToWhatsapp() {
+      const cart = getCart();
+      if (!cart.length) return;
+      const name = document.getElementById('customerName').value.trim();
+      if (!name) { alert('Por favor ingresá tu nombre'); document.getElementById('customerName').focus(); return; }
+      const phone = document.getElementById('customerPhone').value.trim();
+      const note = document.getElementById('customerNote').value.trim();
+      const total = cart.reduce((s, i) => s + i.precio * i.qty, 0);
+      let msg = `¡Hola! Quiero hacer un pedido de *Suplementos Victoria* 🛒\n\n*Productos:*\n`;
+      cart.forEach(i => { msg += `• ${i.qty}x ${i.nombre} — ${formatPrice(i.precio * i.qty)}\n`; });
+      msg += `\n💰 *Total: ${formatPrice(total)}*\n\n👤 *Nombre:* ${name}`;
+      if (phone) msg += `\n📞 *Teléfono:* ${phone}`;
+      if (note) msg += `\n📝 *Nota:* ${note}`;
+      window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => { updateCartCount(); renderCartPage(); });
+  </script>
+</body>
+</html>
