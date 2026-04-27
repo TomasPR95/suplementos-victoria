@@ -173,8 +173,13 @@
       const cart = getCart();
       const item = cart.find(i => i.id === id);
       if (!item) return;
-      item.qty += delta;
-      if (item.qty <= 0) { removeItem(id); return; }
+      const newQty = item.qty + delta;
+      if (newQty <= 0) { removeItem(id); return; }
+      if (item.stock !== null && newQty > item.stock) {
+        showToast('⚠️ Stock máximo: ' + item.stock);
+        return;
+      }
+      item.qty = newQty;
       saveCart(cart); renderCartPage();
     }
     function removeItem(id) { saveCart(getCart().filter(i => i.id !== id)); renderCartPage(); }
@@ -200,3 +205,4 @@
   </script>
 </body>
 </html>
+
