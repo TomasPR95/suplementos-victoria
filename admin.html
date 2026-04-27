@@ -390,10 +390,30 @@
       showToast('✅ Configuración guardada');
     }
 
+    // IMAGE UPLOAD
+    async function previewImage(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => { document.getElementById('imgPreview').innerHTML = '<img src="' + e.target.result + '" />'; };
+      reader.readAsDataURL(file);
+      showToast('Subiendo imagen...');
+      const ext = file.name.split('.').pop();
+      const fileName = Date.now() + '.' + ext;
+      const { data, error } = await db.storage.from('PRODUCTOS').upload(fileName, file, { upsert: true });
+      if (error) { alert('Error al subir imagen: ' + error.message); return; }
+      const { data: urlData } = db.storage.from('PRODUCTOS').getPublicUrl(fileName);
+      document.getElementById('pImagen').value = urlData.publicUrl;
+      showToast('Imagen subida correctamente');
+    }
+
+    function previewUrl(url) {
+      const preview = document.getElementById('imgPreview');
+      preview.innerHTML = url ? '<img src="' + url + '" onerror="this.parentElement.innerHTML=String.fromCodePoint(0x1F4AA)" />' : String.fromCodePoint(0x1F4AA);
+    }
+
     document.addEventListener('DOMContentLoaded', checkSession);
   </script>
 </body>
 </html>
-
-
 
