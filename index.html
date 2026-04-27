@@ -138,7 +138,15 @@
     function addToCart(product) {
       const cart = getCart();
       const existing = cart.find(i => i.id === product.id);
-      existing ? existing.qty++ : cart.push({ ...product, qty: 1 });
+      if (existing) {
+        if (product.stock !== null && existing.qty >= product.stock) {
+          showToast('⚠️ No hay más stock disponible');
+          return;
+        }
+        existing.qty++;
+      } else {
+        cart.push({ ...product, qty: 1 });
+      }
       saveCart(cart);
       showToast('✅ ' + product.nombre + ' agregado al carrito');
     }
