@@ -29,6 +29,7 @@
     .cart-item-img { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; background: #f5f5f5; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; }
     .cart-item-info { flex: 1; }
     .cart-item-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.2rem; }
+    .cart-item-variant { font-size: 0.75rem; color: var(--gray); margin-bottom: 0.2rem; }
     .cart-item-price { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 1px; }
     .cart-item-controls { display: flex; align-items: center; gap: 0.5rem; }
     .qty-btn { width: 28px; height: 28px; border-radius: 50%; border: 1px solid #ddd; background: #fff; color: var(--black); font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: border-color 0.2s; }
@@ -113,7 +114,6 @@
 
     let WA_NUMBER = '541140917935';
 
-    // --- CONFIG ---
     async function loadConfig() {
       const { data } = await db.from('configuracion').select('*');
       if (!data) return;
@@ -123,7 +123,6 @@
       if (cfg.color_principal) document.documentElement.style.setProperty('--black', cfg.color_principal);
     }
 
-    // --- CARRITO ---
     function getCart() { return JSON.parse(localStorage.getItem('sv_cart') || '[]'); }
     function saveCart(cart) { localStorage.setItem('sv_cart', JSON.stringify(cart)); updateCartCount(); }
     function updateCartCount() {
@@ -154,27 +153,28 @@
           <div class="cart-item-img">${item.imagen_url ? `<img src="${item.imagen_url}" alt="${item.nombre}" style="width:100%;height:100%;object-fit:cover;border-radius:6px" />` : '💪'}</div>
           <div class="cart-item-info">
             <p class="cart-item-name">${item.nombre}</p>
+            ${item.variante ? `<p class="cart-item-variant">${item.variante}</p>` : ''}
             <p class="cart-item-price">${formatPrice(item.precio * item.qty)}</p>
           </div>
           <div class="cart-item-controls">
-            <button class="qty-btn" onclick="changeQty(${item.id}, -1)">−</button>
+            <button class="qty-btn" onclick="changeQty('${item.cartKey}', -1)">−</button>
             <span class="qty-val">${item.qty}</span>
-            <button class="qty-btn" onclick="changeQty(${item.id}, +1)">+</button>
-            <button class="btn-remove" onclick="removeItem(${item.id})">✕</button>
+            <button class="qty-btn" onclick="changeQty('${item.cartKey}', +1)">+</button>
+            <button class="btn-remove" onclick="removeItem('${item.cartKey}')">✕</button>
           </div>
         </div>`).join('');
       const total = cart.reduce((s, i) => s + i.precio * i.qty, 0);
       document.getElementById('summaryRows').innerHTML = cart.map(i =>
-        `<div class="summary-row"><span>${i.qty}x ${i.nombre}</span><span>${formatPrice(i.precio * i.qty)}</span></div>`).join('');
+        `<div class="summary-row"><span>${i.qty}x ${i.nombre}${i.variante ? ' - ' + i.variante : ''}</span><span>${formatPrice(i.precio * i.qty)}</span></div>`).join('');
       document.getElementById('summaryTotal').textContent = formatPrice(total);
     }
 
-    function changeQty(id, delta) {
+    function changeQty(cartKey, delta) {
       const cart = getCart();
-      const item = cart.find(i => i.id === id);
+      const item = cart.find(i => i.cartKey === cartKey);
       if (!item) return;
       const newQty = item.qty + delta;
-      if (newQty <= 0) { removeItem(id); return; }
+      if (newQty <= 0) { removeItem(cartKey); return; }
       if (item.stock !== null && newQty > item.stock) {
         showToast('⚠️ Stock máximo: ' + item.stock);
         return;
@@ -182,7 +182,7 @@
       item.qty = newQty;
       saveCart(cart); renderCartPage();
     }
-    function removeItem(id) { saveCart(getCart().filter(i => i.id !== id)); renderCartPage(); }
+    function removeItem(cartKey) { saveCart(getCart().filter(i => i.cartKey !== cartKey)); renderCartPage(); }
     function clearCart() { if (!confirm('¿Vaciar el carrito?')) return; saveCart([]); renderCartPage(); }
 
     function sendToWhatsapp() {
@@ -194,7 +194,9 @@
       const note = document.getElementById('customerNote').value.trim();
       const total = cart.reduce((s, i) => s + i.precio * i.qty, 0);
       let msg = `¡Hola! Quiero hacer un pedido de *Suplementos Victoria* 🛒\n\n*Productos:*\n`;
-      cart.forEach(i => { msg += `• ${i.qty}x ${i.nombre} — ${formatPrice(i.precio * i.qty)}\n`; });
+      cart.forEach(i => { 
+        msg += `• ${i.qty}x ${i.nombre}${i.variante ? ' (' + i.variante + ')' : ''} — ${formatPrice(i.precio * i.qty)}\n`; 
+      });
       msg += `\n💰 *Total: ${formatPrice(total)}*\n\n👤 *Nombre:* ${name}`;
       if (phone) msg += `\n📞 *Teléfono:* ${phone}`;
       if (note) msg += `\n📝 *Nota:* ${note}`;
