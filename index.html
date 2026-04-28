@@ -57,6 +57,16 @@
     .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--black); color: #fff; padding: 0.8rem 1.5rem; border-radius: 30px; font-size: 0.85rem; font-weight: 500; opacity: 0; transition: all 0.3s ease; z-index: 999; white-space: nowrap; }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     .footer { text-align: center; padding: 2rem; color: var(--gray); font-size: 0.8rem; border-top: 1px solid #e5e5e5; }
+    
+    .variant-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; display: none; align-items: center; justify-content: center; padding: 1.5rem; }
+    .variant-modal.open { display: flex; }
+    .variant-box { background: #fff; border-radius: 12px; padding: 1.5rem; max-width: 320px; width: 100%; }
+    .variant-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 2px; margin-bottom: 1rem; }
+    .variant-select { width: 100%; padding: 0.7rem; border: 1px solid #ddd; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; margin-bottom: 1rem; }
+    .variant-actions { display: flex; gap: 0.5rem; }
+    .btn-variant { flex: 1; padding: 0.7rem; border: none; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
+    .btn-variant-cancel { background: #f5f5f5; color: var(--black); }
+    .btn-variant-add { background: var(--black); color: #fff; }
     @media (max-width: 640px) { .nav { display: none; } .hero-title { font-size: 3rem; } }
   </style>
 </head>
@@ -104,6 +114,17 @@
     </div>
   </main>
 
+  <div class="variant-modal" id="variantModal">
+    <div class="variant-box">
+      <h3 class="variant-title" id="variantProductName"></h3>
+      <select class="variant-select" id="variantSelect"></select>
+      <div class="variant-actions">
+        <button class="btn-variant btn-variant-cancel" onclick="closeVariantModal()">Cancelar</button>
+        <button class="btn-variant btn-variant-add" onclick="confirmVariant()">Agregar</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <footer class="footer">
@@ -135,21 +156,63 @@
       el.textContent = total;
       el.style.display = total > 0 ? 'flex' : 'none';
     }
-    function addToCart(product) {
+    
+    let pendingProduct = null;
+    
+    function addToCart(product, varianteName = null) {
+      if (product.variantes && product.variantes.length > 0 && !varianteName) {
+        pendingProduct = product;
+        document.getElementById('variantProductName').textContent = product.nombre;
+        const select = document.getElementById('variantSelect');
+        select.innerHTML = product.variantes.map(v => 
+          `<option value="${v.nombre}" ${v.stock <= 0 ? 'disabled' : ''}>${v.nombre}${v.stock <= 0 ? ' (Sin stock)' : ` (Stock: ${v.stock})`}</option>`
+        ).join('');
+        document.getElementById('variantModal').classList.add('open');
+        return;
+      }
+
       const cart = getCart();
-      const existing = cart.find(i => i.id === product.id);
+      const cartKey = varianteName ? `${product.id}_${varianteName}` : product.id;
+      const existing = cart.find(i => i.cartKey === cartKey);
+      
+      let maxStock = product.stock;
+      if (varianteName && product.variantes) {
+        const variant = product.variantes.find(v => v.nombre === varianteName);
+        maxStock = variant ? variant.stock : 0;
+      }
+
       if (existing) {
-        if (product.stock !== null && existing.qty >= product.stock) {
+        if (maxStock !== null && existing.qty >= maxStock) {
           showToast('⚠️ No hay más stock disponible');
           return;
         }
         existing.qty++;
       } else {
-        cart.push({ ...product, qty: 1 });
+        cart.push({ 
+          ...product, 
+          cartKey, 
+          variante: varianteName,
+          stock: maxStock,
+          qty: 1 
+        });
       }
       saveCart(cart);
-      showToast('✅ ' + product.nombre + ' agregado al carrito');
+      showToast('✅ ' + product.nombre + (varianteName ? ` (${varianteName})` : '') + ' agregado al carrito');
     }
+
+    function closeVariantModal() {
+      document.getElementById('variantModal').classList.remove('open');
+      pendingProduct = null;
+    }
+
+    function confirmVariant() {
+      const varianteName = document.getElementById('variantSelect').value;
+      if (pendingProduct && varianteName) {
+        addToCart(pendingProduct, varianteName);
+        closeVariantModal();
+      }
+    }
+
     function showToast(msg) {
       const t = document.getElementById('toast');
       t.textContent = msg; t.classList.add('show');
@@ -164,6 +227,12 @@
       try {
         const { data, error } = await db.from('productos').select('*').order('nombre');
         if (error) throw error;
+        
+        for (const p of data) {
+          const { data: vars } = await db.from('variantes').select('*').eq('producto_id', p.id);
+          p.variantes = vars || [];
+        }
+        
         allProducts = data || [];
         renderProducts();
       } catch (err) {
@@ -188,7 +257,15 @@
         grid.innerHTML = '<div class="loading">No se encontraron productos' + (searchQuery ? ' para "' + searchQuery + '"' : '') + '.</div>';
         return;
       }
-      grid.innerHTML = filtered.map(p => `
+      grid.innerHTML = filtered.map(p => {
+        let hasStock = false;
+        if (p.variantes && p.variantes.length > 0) {
+          hasStock = p.variantes.some(v => v.stock > 0);
+        } else {
+          hasStock = p.stock > 0 || p.stock === null;
+        }
+        
+        return `
         <div class="product-card">
           ${p.imagen_url ? `<img class="product-img" src="${p.imagen_url}" alt="${p.nombre}" loading="lazy" />` : `<div class="product-img-placeholder">💪</div>`}
           <div class="product-info">
@@ -197,10 +274,10 @@
             ${p.descripcion ? `<p class="product-desc">${p.descripcion}</p>` : ''}
             <div class="product-footer">
               <span class="product-price">${formatPrice(p.precio)}</span>
-              ${p.stock > 0 || p.stock === null ? `<button class="btn-add" onclick='addToCart(${JSON.stringify(p)})'>+ Agregar</button>` : `<span class="product-stock-out">Sin stock</span>`}
+              ${hasStock ? `<button class="btn-add" onclick='addToCart(${JSON.stringify(p)})'>+ Agregar</button>` : `<span class="product-stock-out">Sin stock</span>`}
             </div>
           </div>
-        </div>`).join('');
+        </div>`}).join('');
     }
 
     function onSearch(val) {
@@ -229,3 +306,4 @@
   </script>
 </body>
 </html>
+
